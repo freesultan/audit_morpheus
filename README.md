@@ -71,8 +71,6 @@ The Slither report can be found [here](https://github.com/code-423n4/2025-08-mor
 * `BuilderSubnets` - The main contract for builders, accepts user stakes, calculates rewards and gives them out.
 - `FeeConfig` - The contract is responsible for the fees of the protocol.
 
-[**Documentation**](https://github.com/MorpheusAIs/Docs/blob/main/Smart%20Contracts/Overview.md)
-
 ## Links
 
 - **Previous audits:**
