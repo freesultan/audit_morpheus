@@ -33,7 +33,6 @@ The 4naly3er report can be found [here](https://github.com/code-423n4/2025-08-mo
 _Note for C4 wardens: Anything included in this `Automated Findings / Publicly Known Issues` section is considered a publicly known issue and is ineligible for awards._
 
 gitbook.mor.org/smart-contracts/documentation/distribution-protocol/v7-protocol/risks
-Zenith Audit - https://github.com/zenith-security/reports/blob/main/reports/Morpheus%20-%20Zenith%20Audit%20Report.pdf
 
 ✅ SCOUTS: Please format the response above 👆 so its not a wall of text and its readable.
 
@@ -43,7 +42,7 @@ Zenith Audit - https://github.com/zenith-security/reports/blob/main/reports/Morp
 
 ## Links
 
-- **Previous audits:**  gitbook.mor.org/security-audits
+- **Previous audits:**  gitbook.mor.org/security-audits, Zenith Audit - https://github.com/zenith-security/reports/blob/main/reports/Morpheus%20-%20Zenith%20Audit%20Report.pdf
   - ✅ SCOUTS: If there are multiple report links, please format them in a list.
 - **Documentation:** gitbook.mor.org
 - **Website:** https://mor.org
