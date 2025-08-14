@@ -7,7 +7,7 @@
   - Scout awards: $500 in USDC
 - [Read our guidelines for more details](https://docs.code4rena.com/competitions)
 - Starts August 15, 2025 20:00 UTC 
-- Ends August 22, 2025 20:00 UTC 
+- Ends August 25, 2025 20:00 UTC 
 
 **❗ Important notes for wardens** 
 1. Since this audit includes live/deployed code, **all submissions will be treated as sensitive:**
