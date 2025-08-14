@@ -1,4 +1,5 @@
 # Morpheus audit details
+
 - Total Prize Pool: $20,000 in USDC
   - HM awards: up to $16,800 in USDC
     - If no valid Highs or Mediums are found, the HM pool is $0
@@ -6,131 +7,82 @@
   - Judge awards: $2,000 in USDC
   - Scout awards: $500 in USDC
 - [Read our guidelines for more details](https://docs.code4rena.com/competitions)
-- Starts August 15, 2025 20:00 UTC 
-- Ends August 25, 2025 20:00 UTC 
+- Starts August 15, 2025 20:00 UTC
+- Ends August 25, 2025 20:00 UTC
 
-**❗ Important notes for wardens** 
+**❗ Important notes for wardens**
+
 1. Since this audit includes live/deployed code, **all submissions will be treated as sensitive:**
-  - Wardens are encouraged to submit High-risk submissions affecting live code promptly, to ensure timely disclosure of such vulnerabilities to the sponsor and guarantee payout in the case where [a sponsor patches a live critical during the audit](https://docs.code4rena.com/awarding/incentive-model-and-awards#the-live-criticals-exception). 
-  - Submissions will be hidden from *all* wardens (SR and non-SR alike) by default, to ensure that no sensitive issues are erroneously shared. 
-  - If the submissions include findings affecting live code, there will be no post-judging QA phase. This ensures that awards can be distributed in a timely fashion, without compromising the security of the project. (Senior members of C4 staff will review the judges’ decisions per usual.)
-  - By default, submissions will not be made public until the report is published.
-  - **Exception:** if the sponsor indicates that no submissions affect live code, then we’ll make submissions visible to all authenticated wardens, and open PJQA to SR wardens per the usual C4 process.
-2. A coded, runnable PoC is required for all High/Medium submissions to this audit. 
-  - This repo includes a basic template to run the test suite.
-  - PoCs must use the test suite provided in this repo.
-  - Your submission will be marked as Insufficient if the POC is not runnable and working with the provided test suite.
-  - Exception: PoC is optional (though recommended) for wardens with signal ≥ 0.68.
+
+- Wardens are encouraged to submit High-risk submissions affecting live code promptly, to ensure timely disclosure of such vulnerabilities to the sponsor and guarantee payout in the case where [a sponsor patches a live critical during the audit](https://docs.code4rena.com/awarding/incentive-model-and-awards#the-live-criticals-exception).
+- Submissions will be hidden from *all* wardens (SR and non-SR alike) by default, to ensure that no sensitive issues are erroneously shared.
+- If the submissions include findings affecting live code, there will be no post-judging QA phase. This ensures that awards can be distributed in a timely fashion, without compromising the security of the project. (Senior members of C4 staff will review the judges’ decisions per usual.)
+- By default, submissions will not be made public until the report is published.
+- **Exception:** if the sponsor indicates that no submissions affect live code, then we’ll make submissions visible to all authenticated wardens, and open PJQA to SR wardens per the usual C4 process.
+
+2. A coded, runnable PoC is required for all High/Medium submissions to this audit.
+
+- This repo includes a basic template to run the test suite.
+- PoCs must use the test suite provided in this repo.
+- Your submission will be marked as Insufficient if the POC is not runnable and working with the provided test suite.
+- Exception: PoC is optional (though recommended) for wardens with signal ≥ 0.68.
+
 3. Judging phase risk adjustments (upgrades/downgrades):
-  - High- or Medium-risk submissions downgraded by the judge to Low-risk (QA) will be ineligible for awards.
-  - Upgrading a Low-risk finding from a QA report to a Medium- or High-risk finding is not supported.
-  - As such, wardens are encouraged to select the appropriate risk level carefully during the submission phase.
+
+- High- or Medium-risk submissions downgraded by the judge to Low-risk (QA) will be ineligible for awards.
+- Upgrading a Low-risk finding from a QA report to a Medium- or High-risk finding is not supported.
+- As such, wardens are encouraged to select the appropriate risk level carefully during the submission phase.
 
 ## Automated Findings / Publicly Known Issues
 
 The 4naly3er report can be found [here](https://github.com/code-423n4/2025-08-morpheus/blob/main/4naly3er-report.md).
 
-_Note for C4 wardens: Anything included in this `Automated Findings / Publicly Known Issues` section is considered a publicly known issue and is ineligible for awards._
+The Slither report can be found [here](https://github.com/code-423n4/2025-08-morpheus/blob/main/slither.txt).
 
-gitbook.mor.org/smart-contracts/documentation/distribution-protocol/v7-protocol/risks
+*Note for C4 wardens: Anything included in this `Automated Findings / Publicly Known Issues` section is considered a publicly known issue and is ineligible for awards.*
 
-✅ SCOUTS: Please format the response above 👆 so its not a wall of text and its readable.
+<https://gitbook.mor.org/smart-contracts/documentation/distribution-protocol/v7-protocol/risks>
 
-# Overview
+# Overview of Morpheus
 
-[ ⭐️ SPONSORS: add info here ]
+### Token
+
+* `MOR OFT` - The Morpheus Network Token with integrated LayerZero OFT (Omnichain Fungible Token) standard.
+
+### Capital Protocol
+
+#### L1
+
+* `DistributionV6` - the basis of the previous version of the protocol (`Distribution V5`). Contains logic with the extension of the possibility of claiming instead of the initial staker.
+
+- `DepositPool` - the basis of the previous version of the protocol (`Distribution V6`). Adds the ability to stake multiple tokens, changes the mechanism for calculating rewards and yield. Each stake token has its own `DepositPool`
+- `ChainLinkDataConsumer` - realizes integration with ChainLink, used for receiving the price feeds.
+- `L1SenderV2` - takes all protocol yields from `DepositPool`s, converts to wstETH, and forwards to L2.
+- `RewardPool` - the MOR reward calculation curve is in this contract. Allows to create reward pools, set curves and calculate the required number of rewards.
+- `Distributor` -  brings all the contracts together in one place for L1. Calculates rewards for users, calculates protocol yield.
+
+#### L2
+
+* `L2TokenReceiverV2` - A contract that receives tokens from the L1Sender contract. It is used to Uniswap market making.
+- `L2MessageReceiver` - A contract that receives messages from the L1Sender contract.
+
+### Builders Protocol
+
+* `BuilderSubnets` - The main contract for builders, accepts user stakes, calculates rewards and gives them out.
+- `FeeConfig` - The contract is responsible for the fees of the protocol.
+
+[**Documentation**](https://github.com/MorpheusAIs/Docs/blob/main/Smart%20Contracts/Overview.md)
 
 ## Links
 
-- **Previous audits:**  gitbook.mor.org/security-audits, Zenith Audit - https://github.com/zenith-security/reports/blob/main/reports/Morpheus%20-%20Zenith%20Audit%20Report.pdf
-  - ✅ SCOUTS: If there are multiple report links, please format them in a list.
-- **Documentation:** gitbook.mor.org
-- **Website:** https://mor.org
-- **X/Twitter:** https://x.com/morpheusais
+- **Previous audits:**
+  - See <https://gitbook.mor.org/security-audits>
+  - Zenith Audit: <https://github.com/zenith-security/reports/blob/main/reports/Morpheus%20-%20Zenith%20Audit%20Report.pdf>
+- **Documentation:** <https://gitbook.mor.org/>
+- **Website:** <https://mor.org>
+- **X/Twitter:** <https://x.com/morpheusais>
 
 ---
-
-# Scope
-
-[ ✅ SCOUTS: add scoping and technical details here ]
-
-### Files in scope
-- ✅ This should be completed using the `metrics.md` file
-- ✅ Last row of the table should be Total: SLOC
-- ✅ SCOUTS: Have the sponsor review and and confirm in text the details in the section titled "Scoping Q amp; A"
-
-*For sponsors that don't use the scoping tool: list all files in scope in the table below (along with hyperlinks) -- and feel free to add notes to emphasize areas of focus.*
-
-| Contract | SLOC | Purpose | Libraries used |  
-| ----------- | ----------- | ----------- | ----------- |
-| [contracts/folder/sample.sol](https://github.com/code-423n4/repo-name/blob/contracts/folder/sample.sol) | 123 | This contract does XYZ | [`@openzeppelin/*`](https://openzeppelin.com/contracts/) |
-
-### Files out of scope
-✅ SCOUTS: List files/directories out of scope
-
-# Additional context
-
-## Areas of concern (where to focus for bugs)
-Main focus on the DepositPool and Distributor contracts:
-- we must maintain compatibility with the previous version and avoid introducing vulnerabilities that could lead to funds being locked or lost by stakers.
-- we must ensure a highly reliable migration to the new version, without any loss of rewards for stakers (assuming the contract owner will perform the migration properly).
-- the reward calculation for new deposit pools should be based on the documentation and requirements.
- - pay close attention to integrations with ChainLink and Aave.
-
-✅ SCOUTS: Please format the response above 👆 so its not a wall of text and its readable.
-
-## Main invariants
-
-- the new version should use updated reward calculation mechanisms by supporting additional staking tokens.
-- the new version must not lock user funds unless this behavior is explicitly defined by the protocol.
-- the share of the DepositPool in calculations is taken at the current price of the token in relation to the USD, we do not take into account exchange rate fluctuations between claim, stake or withdraw.
-- the data feeds for Chainlink are selected by the contract owner and are considered reliable.
-- the shares of all DepositPools must be recalculated when the amount of staked tokens in any deposit pool changes.
-
-✅ SCOUTS: Please format the response above 👆 so its not a wall of text and its readable.
-
-## All trusted roles in the protocol
-
-The Morpheus multisig - protocol owner.
-
-✅ SCOUTS: Please format the response above 👆 using the template below👇
-
-| Role                                | Description                       |
-| --------------------------------------- | ---------------------------- |
-| Owner                          | Has superpowers                |
-| Administrator                             | Can change fees                       |
-
-✅ SCOUTS: Please format the response above 👆 so its not a wall of text and its readable.
-
-## Running tests
-
-git clone https://github.com/MorpheusAIs/SmartContracts.git
-git checkout -b feature/capital-builders-v2
-npm run compile
-npm run test
-
-✅ SCOUTS: Please format the response above 👆 using the template below👇
-
-```bash
-git clone https://github.com/code-423n4/2023-08-arbitrum
-git submodule update --init --recursive
-cd governance
-foundryup
-make install
-make build
-make sc-election-test
-```
-To run code coverage
-```bash
-make coverage
-```
-
-✅ SCOUTS: Add a screenshot of your terminal showing the test coverage
-
-## Miscellaneous
-Employees of Morpheus and employees' family members are ineligible to participate in this audit.
-
-Code4rena's rules cannot be overridden by the contents of this README. In case of doubt, please check with C4 staff.
 
 # Scope
 
@@ -138,15 +90,14 @@ Code4rena's rules cannot be overridden by the contents of this README. In case o
 
 ### Files in scope
 
-
-| File   | Logic Contracts | Interfaces | nSLOC | Purpose | Libraries used |
-| ------ | --------------- | ---------- | ----- | -----   | ------------ |
-| /contracts/capital-protocol/ChainLinkDataConsumer.sol | 1| **** | 30 | |@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol<br>@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol<br>@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol<br>@solarity/solidity-lib/libs/decimals/DecimalsConverter.sol|
-| /contracts/capital-protocol/DepositPool.sol | 1| **** | 41 | |@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol<br>@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol<br>@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol<br>@solarity/solidity-lib/utils/Globals.sol|
-| /contracts/capital-protocol/Distributor.sol | 1| **** | 92 | |@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol<br>@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol<br>@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol<br>@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol<br>@openzeppelin/contracts/utils/math/Math.sol<br>@aave/core-v3/contracts/interfaces/IPool.sol<br>@aave/core-v3/contracts/interfaces/IPoolDataProvider.sol<br>@solarity/solidity-lib/libs/decimals/DecimalsConverter.sol|
-| /contracts/capital-protocol/L1SenderV2.sol | 1| **** | 104 | |@openzeppelin/contracts/token/ERC20/IERC20.sol<br>@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol<br>@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol<br>@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol<br>@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol<br>@layerzerolabs/lz-evm-sdk-v1-0.7/contracts/interfaces/ILayerZeroEndpoint.sol<br>@arbitrum/token-bridge-contracts/contracts/tokenbridge/libraries/gateway/IGatewayRouter.sol|
-| /contracts/capital-protocol/L2TokenReceiverV2.sol | 1| **** | 110 | |@openzeppelin/contracts/token/ERC721/IERC721.sol<br>@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol<br>@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol<br>@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol<br>@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol|
-| /contracts/capital-protocol/RewardPool.sol | 1| **** | 13 | |@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol<br>@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol|
+| File | Logic Contracts | Interfaces | nSLOC | Purpose | Libraries used |
+|---|---|---|---|---|---|
+| [/contracts/capital-protocol/ChainLinkDataConsumer.sol](https://github.com/code-423n4/2025-08-morpheus/blob/main/contracts/capital-protocol/ChainLinkDataConsumer.sol) | 1| **** | 30 | |@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol<br>@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol<br>@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol<br>@solarity/solidity-lib/libs/decimals/DecimalsConverter.sol|
+| [/contracts/capital-protocol/DepositPool.sol](https://github.com/code-423n4/2025-08-morpheus/blob/main/contracts/capital-protocol/DepositPool.sol) | 1| **** | 41 | |@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol<br>@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol<br>@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol<br>@solarity/solidity-lib/utils/Globals.sol|
+| [/contracts/capital-protocol/Distributor.sol](https://github.com/code-423n4/2025-08-morpheus/blob/main/contracts/capital-protocol/Distributor.sol) | 1| **** | 92 | |@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol<br>@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol<br>@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol<br>@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol<br>@openzeppelin/contracts/utils/math/Math.sol<br>@aave/core-v3/contracts/interfaces/IPool.sol<br>@aave/core-v3/contracts/interfaces/IPoolDataProvider.sol<br>@solarity/solidity-lib/libs/decimals/DecimalsConverter.sol|
+| [/contracts/capital-protocol/L1SenderV2.sol](https://github.com/code-423n4/2025-08-morpheus/blob/main/contracts/capital-protocol/L1SenderV2.sol) | 1| **** | 104 | |@openzeppelin/contracts/token/ERC20/IERC20.sol<br>@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol<br>@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol<br>@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol<br>@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol<br>@layerzerolabs/lz-evm-sdk-v1-0.7/contracts/interfaces/ILayerZeroEndpoint.sol<br>@arbitrum/token-bridge-contracts/contracts/tokenbridge/libraries/gateway/IGatewayRouter.sol|
+| [/contracts/capital-protocol/L2TokenReceiverV2.sol](https://github.com/code-423n4/2025-08-morpheus/blob/main/contracts/capital-protocol/L2TokenReceiverV2.sol) | 1| **** | 110 | |@openzeppelin/contracts/token/ERC721/IERC721.sol<br>@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol<br>@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol<br>@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol<br>@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol|
+| [/contracts/capital-protocol/RewardPool.sol](https://github.com/code-423n4/2025-08-morpheus/blob/main/contracts/capital-protocol/RewardPool.sol) | 1| **** | 13 | |@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol<br>@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol|
 | **Totals** | **6** | **** | **390** | | |
 
 ### Files out of scope
@@ -251,3 +202,71 @@ Code4rena's rules cannot be overridden by the contents of this README. In case o
 | ./contracts/old/MOR.sol |
 | Totals: 94 |
 
+# Additional context
+
+## Areas of concern (where to focus for bugs)
+
+Main focus on the DepositPool and Distributor contracts:
+
+- we must maintain compatibility with the previous version and avoid introducing vulnerabilities that could lead to funds being locked or lost by stakers.
+- we must ensure a highly reliable migration to the new version, without any loss of rewards for stakers (assuming the contract owner will perform the migration properly).
+- the reward calculation for new deposit pools should be based on the documentation and requirements.
+- pay close attention to integrations with ChainLink and Aave.
+
+## Main invariants
+
+- the new version should use updated reward calculation mechanisms by supporting additional staking tokens.
+- the new version must not lock user funds unless this behavior is explicitly defined by the protocol.
+- the share of the DepositPool in calculations is taken at the current price of the token in relation to the USD, we do not take into account exchange rate fluctuations between claim, stake or withdraw.
+- the data feeds for Chainlink are selected by the contract owner and are considered reliable.
+- the shares of all DepositPools must be recalculated when the amount of staked tokens in any deposit pool changes.
+
+## All trusted roles in the protocol
+
+| Role                                | Description                       |
+| --------------------------------------- | ---------------------------- |
+| Protocol Owner                          | The Morpheus multisig               |
+
+## Running tests
+
+Before any following steps, you need to create an `.env` file following the example of `.env.example`.
+
+You need to set the `INFURA_KEY` and `PRIVATE_KEY` environment variables to run the tests for forked mainnet.
+
+```bash
+git clone --recurse https://github.com/code-423n4/2025-08-morpheus.git
+cd 2025-08-morpheus
+npm install
+npm run compile
+npm run test
+# To run the tests for forked mainnet, run:
+npm run test-fork
+npm run coverage
+```
+
+### Local Deployment
+
+To deploy the contracts locally, run the following commands (in the different terminals):
+
+```bash
+npm run private-network
+./deploy/deploy-all.sh localhost localhost
+```
+
+> The local deployment is may fail due to the lack of third-party contracts. To fix this, you may run test deployment on the forked mainnet.
+
+## Bindings
+
+The command to generate the bindings is as follows:
+
+```bash
+npm run generate-types
+```
+
+> See the full list of available commands in the `package.json` file.
+
+## Miscellaneous
+
+Employees of Morpheus and employees' family members are ineligible to participate in this audit.
+
+Code4rena's rules cannot be overridden by the contents of this README. In case of doubt, please check with C4 staff.
