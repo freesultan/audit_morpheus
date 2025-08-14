@@ -1,48 +1,27 @@
-# ✨ So you want to run an audit
-
-This `README.md` contains a set of checklists for our audit collaboration. This is your audit repo, which is used for scoping your audit and for providing information to wardens
-
-Some of the checklists in this doc are for our scouts and some of them are for **you as the audit sponsor (⭐️)**.
-
----
-
-# Repo setup
-
-## ⭐️ Sponsor: Add code to this repo
-
-- [ ] Create a PR to this repo with the below changes:
-- [ ] Confirm that this repo is a self-contained repository with working commands that will build (at least) all in-scope contracts, and commands that will run tests producing gas reports for the relevant contracts.
-- [ ] Please have final versions of contracts and documentation added/updated in this repo **no less than 48 business hours prior to audit start time.**
-- [ ] Be prepared for a 🚨code freeze🚨 for the duration of the audit — important because it establishes a level playing field. We want to ensure everyone's looking at the same code, no matter when they look during the audit. (Note: this includes your own repo, since a PR can leak alpha to our wardens!)
-
-## ⭐️ Sponsor: Repo checklist
-
-- [ ] Modify the [Overview](#overview) section of this `README.md` file. Describe how your code is supposed to work with links to any relevant documentation and any other criteria/details that the auditors should keep in mind when reviewing. (Here are two well-constructed examples: [Ajna Protocol](https://github.com/code-423n4/2023-05-ajna) and [Maia DAO Ecosystem](https://github.com/code-423n4/2023-05-maia))
-- [ ] Optional: pre-record a high-level overview of your protocol (not just specific smart contract functions). This saves wardens a lot of time wading through documentation.
-- [ ] Review and confirm the details created by the Scout (technical reviewer) who was assigned to your contest. *Note: any files not listed as "in scope" will be considered out of scope for the purposes of judging, even if the file will be part of the deployed contracts.*  
-
----
-
 # Morpheus audit details
-- Total Prize Pool: $20000 in USDC
-  - HM awards: up to XXX XXX USDC (Notion: HM (main) pool)
-    - If no valid Highs or Mediums are found, the HM pool is $0 
+- Total Prize Pool: $20,000 in USDC
+  - HM awards: up to $16,800 in USDC
+    - If no valid Highs or Mediums are found, the HM pool is $0
   - QA awards: $700 in USDC
-  - Judge awards: $2000 in USDC
+  - Judge awards: $2,000 in USDC
   - Scout awards: $500 in USDC
-  - (this line can be removed if there is no mitigation) Mitigation Review: XXX XXX USDC
 - [Read our guidelines for more details](https://docs.code4rena.com/competitions)
-- Starts XXX XXX XX 20:00 UTC (ex. `Starts March 22, 2023 20:00 UTC`)
-- Ends XXX XXX XX 20:00 UTC (ex. `Ends March 30, 2023 20:00 UTC`)
+- Starts August 15, 2025 20:00 UTC 
+- Ends August 22, 2025 20:00 UTC 
 
 **❗ Important notes for wardens** 
-## 🐺 C4 staff: delete the PoC requirement section if not applicable - i.e. for non-Solidity/EVM audits.
-1. A coded, runnable PoC is required for all High/Medium submissions to this audit. 
+1. Since this audit includes live/deployed code, **all submissions will be treated as sensitive:**
+  - Wardens are encouraged to submit High-risk submissions affecting live code promptly, to ensure timely disclosure of such vulnerabilities to the sponsor and guarantee payout in the case where [a sponsor patches a live critical during the audit](https://docs.code4rena.com/awarding/incentive-model-and-awards#the-live-criticals-exception). 
+  - Submissions will be hidden from *all* wardens (SR and non-SR alike) by default, to ensure that no sensitive issues are erroneously shared. 
+  - If the submissions include findings affecting live code, there will be no post-judging QA phase. This ensures that awards can be distributed in a timely fashion, without compromising the security of the project. (Senior members of C4 staff will review the judges’ decisions per usual.)
+  - By default, submissions will not be made public until the report is published.
+  - **Exception:** if the sponsor indicates that no submissions affect live code, then we’ll make submissions visible to all authenticated wardens, and open PJQA to SR wardens per the usual C4 process.
+2. A coded, runnable PoC is required for all High/Medium submissions to this audit. 
   - This repo includes a basic template to run the test suite.
   - PoCs must use the test suite provided in this repo.
   - Your submission will be marked as Insufficient if the POC is not runnable and working with the provided test suite.
   - Exception: PoC is optional (though recommended) for wardens with signal ≥ 0.68.
-1. Judging phase risk adjustments (upgrades/downgrades):
+3. Judging phase risk adjustments (upgrades/downgrades):
   - High- or Medium-risk submissions downgraded by the judge to Low-risk (QA) will be ineligible for awards.
   - Upgrading a Low-risk finding from a QA report to a Medium- or High-risk finding is not supported.
   - As such, wardens are encouraged to select the appropriate risk level carefully during the submission phase.
@@ -52,11 +31,106 @@ Some of the checklists in this doc are for our scouts and some of them are for *
 The 4naly3er report can be found [here](https://github.com/code-423n4/2025-08-morpheus/blob/main/4naly3er-report.md).
 
 _Note for C4 wardens: Anything included in this `Automated Findings / Publicly Known Issues` section is considered a publicly known issue and is ineligible for awards._
-## 🐺 C4: Begin Gist paste here (and delete this line)
 
+gitbook.mor.org/smart-contracts/documentation/distribution-protocol/v7-protocol/risks
 
+✅ SCOUTS: Please format the response above 👆 so its not a wall of text and its readable.
 
+# Overview
 
+[ ⭐️ SPONSORS: add info here ]
+
+## Links
+
+- **Previous audits:**  gitbook.mor.org/security-audits
+  - ✅ SCOUTS: If there are multiple report links, please format them in a list.
+- **Documentation:** gitbook.mor.org
+- **Website:** https://mor.org
+- **X/Twitter:** https://x.com/morpheusais
+
+---
+
+# Scope
+
+[ ✅ SCOUTS: add scoping and technical details here ]
+
+### Files in scope
+- ✅ This should be completed using the `metrics.md` file
+- ✅ Last row of the table should be Total: SLOC
+- ✅ SCOUTS: Have the sponsor review and and confirm in text the details in the section titled "Scoping Q amp; A"
+
+*For sponsors that don't use the scoping tool: list all files in scope in the table below (along with hyperlinks) -- and feel free to add notes to emphasize areas of focus.*
+
+| Contract | SLOC | Purpose | Libraries used |  
+| ----------- | ----------- | ----------- | ----------- |
+| [contracts/folder/sample.sol](https://github.com/code-423n4/repo-name/blob/contracts/folder/sample.sol) | 123 | This contract does XYZ | [`@openzeppelin/*`](https://openzeppelin.com/contracts/) |
+
+### Files out of scope
+✅ SCOUTS: List files/directories out of scope
+
+# Additional context
+
+## Areas of concern (where to focus for bugs)
+Main focus on the DepositPool and Distributor contracts:
+- we must maintain compatibility with the previous version and avoid introducing vulnerabilities that could lead to funds being locked or lost by stakers.
+- we must ensure a highly reliable migration to the new version, without any loss of rewards for stakers (assuming the contract owner will perform the migration properly).
+- the reward calculation for new deposit pools should be based on the documentation and requirements.
+ - pay close attention to integrations with ChainLink and Aave.
+
+✅ SCOUTS: Please format the response above 👆 so its not a wall of text and its readable.
+
+## Main invariants
+
+- the new version should use updated reward calculation mechanisms by supporting additional staking tokens.
+- the new version must not lock user funds unless this behavior is explicitly defined by the protocol.
+- the share of the DepositPool in calculations is taken at the current price of the token in relation to the USD, we do not take into account exchange rate fluctuations between claim, stake or withdraw.
+- the data feeds for Chainlink are selected by the contract owner and are considered reliable.
+- the shares of all DepositPools must be recalculated when the amount of staked tokens in any deposit pool changes.
+
+✅ SCOUTS: Please format the response above 👆 so its not a wall of text and its readable.
+
+## All trusted roles in the protocol
+
+The Morpheus multisig - protocol owner.
+
+✅ SCOUTS: Please format the response above 👆 using the template below👇
+
+| Role                                | Description                       |
+| --------------------------------------- | ---------------------------- |
+| Owner                          | Has superpowers                |
+| Administrator                             | Can change fees                       |
+
+✅ SCOUTS: Please format the response above 👆 so its not a wall of text and its readable.
+
+## Running tests
+
+git clone https://github.com/MorpheusAIs/SmartContracts.git
+git checkout -b feature/capital-builders-v2
+npm run compile
+npm run test
+
+✅ SCOUTS: Please format the response above 👆 using the template below👇
+
+```bash
+git clone https://github.com/code-423n4/2023-08-arbitrum
+git submodule update --init --recursive
+cd governance
+foundryup
+make install
+make build
+make sc-election-test
+```
+To run code coverage
+```bash
+make coverage
+```
+
+✅ SCOUTS: Add a screenshot of your terminal showing the test coverage
+
+## Miscellaneous
+Employees of Morpheus and employees' family members are ineligible to participate in this audit.
+
+Code4rena's rules cannot be overridden by the contents of this README. In case of doubt, please check with C4 staff.
 
 # Scope
 
