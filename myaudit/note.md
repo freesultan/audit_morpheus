@@ -10,3 +10,5 @@
 
 ## attakcer mindset
 - How to dos, time sensetive dos, revert? 
+- How to exploit boundries and edge cases? 
+- Rewards and calculation test
