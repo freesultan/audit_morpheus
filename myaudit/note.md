@@ -6,3 +6,7 @@
 
 ## Invariants
 - the shares of all DepositPools must be recalculated when the amount of staked tokens in any deposit pool changes.
+
+
+## attakcer mindset
+- How to dos, time sensetive dos, revert? 

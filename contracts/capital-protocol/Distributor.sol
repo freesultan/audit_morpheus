@@ -24,6 +24,8 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
     using DecimalsConverter for uint256;
     using Math for uint256;
 
+    //@>i earch reward pool has many deposit pools, each deposit pool has its own token and strategy.
+
     /** @dev `reward_pool_index` => `deposit_pool_address` => `DepositPool` */
     mapping(uint256 => mapping(address => DepositPool)) public depositPools;
     /** @dev `DepositPool.token` => `bool` */
@@ -257,7 +259,7 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
 
     function updateDepositTokensPrices(uint256 rewardPoolIndex_) public {
         IRewardPool(rewardPool).onlyPublicRewardPool(rewardPoolIndex_);
-
+        
         uint256 length_ = depositPoolAddresses[rewardPoolIndex_].length;
         IChainLinkDataConsumer chainLinkDataConsumer_ = IChainLinkDataConsumer(chainLinkDataConsumer);
 

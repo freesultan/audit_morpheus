@@ -68,6 +68,7 @@ contract RewardPool is IRewardPool, OwnableUpgradeable, UUPSUpgradeable {
         require(!isRewardPoolPublic(index_), "RP: the pool is public");
     }
 
+    //@>i how much reward is available for the period, in tokens in this rewardpool.
     function getPeriodRewards(uint256 index_, uint128 startTime_, uint128 endTime_) external view returns (uint256) {
         if (!isRewardPoolExist(index_)) {
             return 0;
