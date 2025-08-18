@@ -259,7 +259,7 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
 
     function updateDepositTokensPrices(uint256 rewardPoolIndex_) public {
         IRewardPool(rewardPool).onlyPublicRewardPool(rewardPoolIndex_);
-        
+
         uint256 length_ = depositPoolAddresses[rewardPoolIndex_].length;
         IChainLinkDataConsumer chainLinkDataConsumer_ = IChainLinkDataConsumer(chainLinkDataConsumer);
 
@@ -469,7 +469,7 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
     ) external payable {
         address depositPoolAddress_ = _msgSender();
         _onlyExistedDepositPool(rewardPoolIndex_, depositPoolAddress_);
-
+        //@>q don't we need to check msg.value here? 
         IL1SenderV2(l1Sender).sendMintMessage{value: msg.value}(user_, amount_, refundTo_);
     }
 
