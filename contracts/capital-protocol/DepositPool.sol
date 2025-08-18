@@ -234,6 +234,7 @@ contract DepositPool is IDepositPool, OwnableUpgradeable, UUPSUpgradeable {
         bool[] calldata isAllowed_
     ) external {
         IRewardPool(IDistributor(distributor).rewardPool()).onlyExistedRewardPool(rewardPoolIndex_);
+
         require(senders_.length == isAllowed_.length, "DS: invalid array length");
 
         for (uint256 i = 0; i < senders_.length; ++i) {
@@ -257,6 +258,7 @@ contract DepositPool is IDepositPool, OwnableUpgradeable, UUPSUpgradeable {
         rewardPool_.onlyPublicRewardPool(rewardPoolIndex_);
 
         IDistributor(distributor).distributeRewards(rewardPoolIndex_);
+
         (uint256 currentPoolRate_, uint256 rewards_) = _getCurrentPoolRate(rewardPoolIndex_);
 
         _stake(_msgSender(), rewardPoolIndex_, amount_, currentPoolRate_, claimLockEnd_, referrer_);

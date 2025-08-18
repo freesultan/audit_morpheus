@@ -337,6 +337,18 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
       // Set time to start reward distribution
       await setNextTime(oneDay * 11);
 
+      let userData = await depositPool.usersData(alice.address, publicRewardPoolId);
+      console.log('--- BEFORE STAKE ---');
+      console.log('Alice deposited:', userData.deposited.toString());
+      console.log('Alice virtualDeposited:', userData.virtualDeposited.toString());
+      console.log('Alice pendingRewards:', userData.pendingRewards.toString());
+      console.log('Alice rate:', userData.rate.toString());
+      console.log('Alice lastStake:', userData.lastStake.toString());
+      console.log('Alice claimLockStart:', userData.claimLockStart.toString());
+      console.log('Alice claimLockEnd:', userData.claimLockEnd.toString());
+      console.log('Alice lastClaim:', userData.lastClaim.toString());
+      console.log('Alice referrer:', userData.referrer);
+
       // Alice stakes tokens
       await depositPool.connect(alice).stake(publicRewardPoolId, wei(100), 0, ZERO_ADDR);
 
@@ -346,9 +358,17 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
       // TODO: Insert vulnerability proof here
       // Example: Demonstrate reward calculation issue, reentrancy, etc.
 
-      const userData = await depositPool.usersData(alice.address, publicRewardPoolId);
+      userData = await depositPool.usersData(alice.address, publicRewardPoolId);
+      console.log('--- AFTER STAKE + 1 DAY ---');
       console.log('Alice deposited:', userData.deposited.toString());
-      console.log('Alice virtual deposited:', userData.virtualDeposited.toString());
+      console.log('Alice virtualDeposited:', userData.virtualDeposited.toString());
+      console.log('Alice pendingRewards:', userData.pendingRewards.toString());
+      console.log('Alice rate:', userData.rate.toString());
+      console.log('Alice lastStake:', userData.lastStake.toString());
+      console.log('Alice claimLockStart:', userData.claimLockStart.toString());
+      console.log('Alice claimLockEnd:', userData.claimLockEnd.toString());
+      console.log('Alice lastClaim:', userData.lastClaim.toString());
+      console.log('Alice referrer:', userData.referrer);
     });
 
     it('POC-2: Distributor - Example vulnerability test', async function () {

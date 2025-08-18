@@ -12,3 +12,8 @@
 - How to dos, time sensetive dos, revert? 
 - How to exploit boundries and edge cases? 
 - Rewards and calculation test
+
+## Develper's mind
+- what parts of this code was rushed?
+- what complex math they hate writing?
+- what external library did they trust blindly?

@@ -332,6 +332,7 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
     function distributeRewards(uint256 rewardPoolIndex_) public {
         //// Base validation
         IRewardPool rewardPool_ = IRewardPool(rewardPool);
+
         rewardPool_.onlyExistedRewardPool(rewardPoolIndex_);
 
         uint128 lastCalculatedTimestamp_ = rewardPoolLastCalculatedTimestamp[rewardPoolIndex_];
@@ -350,6 +351,7 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
 
         // Stop execution when the reward pool is private
         if (!rewardPool_.isRewardPoolPublic(rewardPoolIndex_)) {
+            //@>q why used [0] here? only first deposit pool? it seems for private rewardpools there is only 1 deposit pool
             _onlyExistedDepositPool(rewardPoolIndex_, depositPoolAddresses[rewardPoolIndex_][0]);
             distributedRewards[rewardPoolIndex_][depositPoolAddresses[rewardPoolIndex_][0]] += rewards_;
 
@@ -362,7 +364,7 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
         if (block.timestamp <= lastCalculatedTimestamp_ + minRewardsDistributePeriod) return;
         rewardPoolLastCalculatedTimestamp[rewardPoolIndex_] = uint128(block.timestamp);
 
-        //// Update prices
+        //// Update prices for all `depositPools` by `rewardPoolIndex_` from chainlink
         updateDepositTokensPrices(rewardPoolIndex_);
         //// End
 
@@ -469,7 +471,7 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
     ) external payable {
         address depositPoolAddress_ = _msgSender();
         _onlyExistedDepositPool(rewardPoolIndex_, depositPoolAddress_);
-        //@>q don't we need to check msg.value here? 
+        //@>q don't we need to check msg.value here?
         IL1SenderV2(l1Sender).sendMintMessage{value: msg.value}(user_, amount_, refundTo_);
     }
 
