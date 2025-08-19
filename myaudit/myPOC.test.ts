@@ -333,12 +333,13 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
     it.only('POC-1: DepositPool - Example vulnerability test', async function () {
       // Setup reward pool timestamp (required before any staking)
       await distributor.setRewardPoolLastCalculatedTimestamp(publicRewardPoolId, 1);
+      await distributor.setMinRewardsDistributePeriod(0);
 
       // Set time to start reward distribution
       await setNextTime(oneDay * 11);
 
       let userData = await depositPool.usersData(alice.address, publicRewardPoolId);
-      console.log('--- BEFORE STAKE ---');
+      console.log('\n--- BEFORE STAKE ---');
       console.log('Alice deposited:', userData.deposited.toString());
       console.log('Alice virtualDeposited:', userData.virtualDeposited.toString());
       console.log('Alice pendingRewards:', userData.pendingRewards.toString());
@@ -348,18 +349,20 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
       console.log('Alice claimLockEnd:', userData.claimLockEnd.toString());
       console.log('Alice lastClaim:', userData.lastClaim.toString());
       console.log('Alice referrer:', userData.referrer);
+
+      console.log('\n --- Alice Stacks ---');
+      console.log('Alice deposit token balance:', (await depositToken.balanceOf(alice.address)).toString());
+      console.log('Alice stETH balance:', (await stETH.balanceOf(alice.address)).toString());
+      console.log('Alice wstETH balance:', (await wstETH.balanceOf(alice.address)).toString());
+      console.log('Alice MOR balance:', (await mor.balanceOf(alice.address)).toString());
 
       // Alice stakes tokens
       await depositPool.connect(alice).stake(publicRewardPoolId, wei(100), 0, ZERO_ADDR);
 
       // Fast forward time
       await setNextTime(oneDay * 12);
-
-      // TODO: Insert vulnerability proof here
-      // Example: Demonstrate reward calculation issue, reentrancy, etc.
-
       userData = await depositPool.usersData(alice.address, publicRewardPoolId);
-      console.log('--- AFTER STAKE + 1 DAY ---');
+      console.log('\n--- AFTER Alice STAKE + 1 DAY ---');
       console.log('Alice deposited:', userData.deposited.toString());
       console.log('Alice virtualDeposited:', userData.virtualDeposited.toString());
       console.log('Alice pendingRewards:', userData.pendingRewards.toString());
@@ -369,6 +372,58 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
       console.log('Alice claimLockEnd:', userData.claimLockEnd.toString());
       console.log('Alice lastClaim:', userData.lastClaim.toString());
       console.log('Alice referrer:', userData.referrer);
+
+      await depositPool.connect(bob).stake(publicRewardPoolId, wei(50), 0, ZERO_ADDR);
+
+      // TODO: Insert vulnerability proof here
+      // Example: Demonstrate reward calculation issue, reentrancy, etc.
+
+      userData = await depositPool.usersData(alice.address, publicRewardPoolId);
+      console.log('\n--- AFTER Bob STAKE + 1 DAY ---');
+      console.log('Alice deposited:', userData.deposited.toString());
+      console.log('Alice virtualDeposited:', userData.virtualDeposited.toString());
+      console.log('Alice pendingRewards:', userData.pendingRewards.toString());
+      console.log('Alice rate:', userData.rate.toString());
+      console.log('Alice lastStake:', userData.lastStake.toString());
+      console.log('Alice claimLockStart:', userData.claimLockStart.toString());
+      console.log('Alice claimLockEnd:', userData.claimLockEnd.toString());
+      console.log('Alice lastClaim:', userData.lastClaim.toString());
+      console.log('Alice referrer:', userData.referrer);
+
+      let aliceRewards = await depositPool.getLatestUserReward(publicRewardPoolId, alice.address);
+      console.log('>>>> latest alice reward:', aliceRewards.toString());
+
+      let bobuserData = await depositPool.usersData(bob.address, publicRewardPoolId);
+      console.log('\n--- AFTER Bob STAKE + 1 DAY ---');
+      console.log('bob deposited:', bobuserData.deposited.toString());
+      console.log('bob virtualDeposited:', bobuserData.virtualDeposited.toString());
+      console.log('bob pendingRewards:', bobuserData.pendingRewards.toString());
+      console.log('bob rate:', bobuserData.rate.toString());
+      console.log('bob lastStake:', bobuserData.lastStake.toString());
+      console.log('bob claimLockStart:', bobuserData.claimLockStart.toString());
+      console.log('bob claimLockEnd:', bobuserData.claimLockEnd.toString());
+      console.log('bob lastClaim:', bobuserData.lastClaim.toString());
+      console.log('bob referrer:', bobuserData.referrer);
+
+      await setNextTime(oneDay * 50);
+      await distributor.distributeRewards(publicRewardPoolId);
+
+      //await depositPool.connect(alice).claim(publicRewardPoolId, alice.address);
+
+      userData = await depositPool.usersData(alice.address, publicRewardPoolId);
+      console.log('\n--- AFTER Alice CLAIM + 50 DAYS ---');
+      console.log('Alice deposited:', userData.deposited.toString());
+      console.log('Alice virtualDeposited:', userData.virtualDeposited.toString());
+      console.log('Alice pendingRewards:', userData.pendingRewards.toString());
+      console.log('Alice rate:', userData.rate.toString());
+      console.log('Alice lastStake:', userData.lastStake.toString());
+      console.log('Alice claimLockStart:', userData.claimLockStart.toString());
+      console.log('Alice claimLockEnd:', userData.claimLockEnd.toString());
+      console.log('Alice lastClaim:', userData.lastClaim.toString());
+      console.log('Alice referrer:', userData.referrer);
+
+      aliceRewards = await depositPool.getLatestUserReward(publicRewardPoolId, alice.address);
+      console.log('>>>> latest alice reward:', aliceRewards.toString());
     });
 
     it('POC-2: Distributor - Example vulnerability test', async function () {

@@ -34,6 +34,7 @@ const config: HardhatUserConfig = {
     hardhat: {
       initialDate: '1970-01-01T00:00:00Z',
       gas: 'auto',
+      allowUnlimitedContractSize: true,
       // forking: {
       //   url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       // },
@@ -145,7 +146,7 @@ const config: HardhatUserConfig = {
       gasMultiplier: 1.1,
     },
   },
-  solidity: { version: '0.8.20', settings: { optimizer: { enabled: true, runs: 200 }, evmVersion: 'paris' } },
+  solidity: { version: '0.8.20', settings: { optimizer: { enabled: true, runs: 1000 }, evmVersion: 'paris' } },
   etherscan: {
     apiKey: {
       goerli: `${process.env.ETHERSCAN_KEY}`,

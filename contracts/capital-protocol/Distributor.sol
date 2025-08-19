@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "hardhat/console.sol";
+
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -292,6 +294,7 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
         require(depositPool.strategy != Strategy.NO_YIELD, "DR: invalid strategy for the deposit pool");
 
         distributeRewards(rewardPoolIndex_);
+
         _withdrawYield(rewardPoolIndex_, depositPoolAddress_);
 
         IERC20(depositPool.token).safeTransferFrom(depositPoolAddress_, address(this), amount_);
@@ -330,12 +333,18 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     function distributeRewards(uint256 rewardPoolIndex_) public {
+        console.log("\n=== distributeRewards() START ===");
+        console.log("rewardPoolIndex:", rewardPoolIndex_);
+
         //// Base validation
         IRewardPool rewardPool_ = IRewardPool(rewardPool);
 
         rewardPool_.onlyExistedRewardPool(rewardPoolIndex_);
 
         uint128 lastCalculatedTimestamp_ = rewardPoolLastCalculatedTimestamp[rewardPoolIndex_];
+        console.log("lastCalculatedTimestamp:", lastCalculatedTimestamp_);
+        console.log("current timestamp:", block.timestamp);
+
         require(lastCalculatedTimestamp_ != 0, "DR: `rewardPoolLastCalculatedTimestamp` isn't set");
         //// End
 
@@ -345,12 +354,15 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
             lastCalculatedTimestamp_,
             uint128(block.timestamp)
         );
+        console.log("calculated rewards from RewardPool:", rewards_);
 
         if (rewards_ == 0) return;
         //// End
 
         // Stop execution when the reward pool is private
         if (!rewardPool_.isRewardPoolPublic(rewardPoolIndex_)) {
+            console.log("Private pool, distributing directly");
+
             //@>q why used [0] here? only first deposit pool? it seems for private rewardpools there is only 1 deposit pool
             _onlyExistedDepositPool(rewardPoolIndex_, depositPoolAddresses[rewardPoolIndex_][0]);
             distributedRewards[rewardPoolIndex_][depositPoolAddresses[rewardPoolIndex_][0]] += rewards_;
@@ -361,17 +373,24 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
         }
 
         // Validate that public reward pools await `minRewardsDistributePeriod`
-        if (block.timestamp <= lastCalculatedTimestamp_ + minRewardsDistributePeriod) return;
+        if (block.timestamp <= lastCalculatedTimestamp_ + minRewardsDistributePeriod) {
+            console.log("Too early for distribution, returning");
+            return;
+        }
         rewardPoolLastCalculatedTimestamp[rewardPoolIndex_] = uint128(block.timestamp);
+        console.log("Updated timestamp to:", block.timestamp);
 
         //// Update prices for all `depositPools` by `rewardPoolIndex_` from chainlink
         updateDepositTokensPrices(rewardPoolIndex_);
+        console.log("Updated token prices");
         //// End
 
         //// Calculate `yield` from all deposit pools
         uint256 length_ = depositPoolAddresses[rewardPoolIndex_].length;
         uint256 totalYield_ = 0;
         uint256[] memory yields_ = new uint256[](length_);
+
+        console.log("Calculating yields for", length_, "deposit pools");
 
         for (uint256 i = 0; i < length_; i++) {
             DepositPool storage depositPool = depositPools[rewardPoolIndex_][depositPoolAddresses[rewardPoolIndex_][i]];
@@ -390,14 +409,26 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
             uint256 underlyingYield_ = (balance_ - depositPool.lastUnderlyingBalance).to18(decimals_);
             uint256 yield_ = underlyingYield_ * depositPool.tokenPrice;
 
+            console.log("Pool", i, ":");
+            console.log("  strategy:", uint256(depositPool.strategy));
+            console.log("  balance:", balance_);
+            console.log("  lastUnderlyingBalance:", depositPool.lastUnderlyingBalance);
+            console.log("  underlyingYield:", underlyingYield_);
+            console.log("  tokenPrice:", depositPool.tokenPrice);
+            console.log("  calculated yield:", yield_);
+
             depositPool.lastUnderlyingBalance = balance_;
 
             yields_[i] = yield_;
             totalYield_ += yield_;
         }
-
+        console.log("Total yield calculated:", totalYield_);
         if (totalYield_ == 0) {
+            console.log("No yield generated, adding to undistributedRewards");
+            console.log("undistributedRewards before:", undistributedRewards);
             undistributedRewards += rewards_;
+            console.log("undistributedRewards after:", undistributedRewards);
+
             return;
         }
         //// End
@@ -405,11 +436,12 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
         //// Calculate `depositPools` shares and reward amount for each `depositPool`
         for (uint256 i = 0; i < length_; i++) {
             if (yields_[i] == 0) continue;
-
+            console.log("Pool", i, "gets reward:", (yields_[i] * rewards_) / totalYield_);
             distributedRewards[rewardPoolIndex_][depositPoolAddresses[rewardPoolIndex_][i]] +=
                 (yields_[i] * rewards_) /
                 totalYield_;
         }
+
         //// End
     }
 
