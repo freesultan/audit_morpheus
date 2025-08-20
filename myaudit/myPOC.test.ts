@@ -350,17 +350,17 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
       console.log('Alice lastClaim:', userData.lastClaim.toString());
       console.log('Alice referrer:', userData.referrer);
 
-      console.log('\n --- Alice Stacks ---');
       console.log('Alice deposit token balance:', (await depositToken.balanceOf(alice.address)).toString());
       console.log('Alice stETH balance:', (await stETH.balanceOf(alice.address)).toString());
       console.log('Alice wstETH balance:', (await wstETH.balanceOf(alice.address)).toString());
       console.log('Alice MOR balance:', (await mor.balanceOf(alice.address)).toString());
-
+      console.log('\n --- Alice Stakes ---');
       // Alice stakes tokens
       await depositPool.connect(alice).stake(publicRewardPoolId, wei(100), 0, ZERO_ADDR);
 
       // Fast forward time
       await setNextTime(oneDay * 12);
+
       userData = await depositPool.usersData(alice.address, publicRewardPoolId);
       console.log('\n--- AFTER Alice STAKE + 1 DAY ---');
       console.log('Alice deposited:', userData.deposited.toString());
@@ -372,6 +372,13 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
       console.log('Alice claimLockEnd:', userData.claimLockEnd.toString());
       console.log('Alice lastClaim:', userData.lastClaim.toString());
       console.log('Alice referrer:', userData.referrer);
+
+      console.log('Alice deposit token balance:', (await depositToken.balanceOf(alice.address)).toString());
+      console.log('Alice stETH balance:', (await stETH.balanceOf(alice.address)).toString());
+      console.log('Alice wstETH balance:', (await wstETH.balanceOf(alice.address)).toString());
+      console.log('Alice MOR balance:', (await mor.balanceOf(alice.address)).toString());
+
+      console.log('\n --- Bob Stakes ---');
 
       await depositPool.connect(bob).stake(publicRewardPoolId, wei(50), 0, ZERO_ADDR);
 

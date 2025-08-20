@@ -262,7 +262,7 @@ contract DepositPool is IDepositPool, OwnableUpgradeable, UUPSUpgradeable {
         rewardPool_.onlyPublicRewardPool(rewardPoolIndex_);
 
         IDistributor(distributor).distributeRewards(rewardPoolIndex_);
-
+        console.log("\n --- end distributeRwards \n");
         (uint256 currentPoolRate_, uint256 rewards_) = _getCurrentPoolRate(rewardPoolIndex_);
         console.log("currentPoolRate:", currentPoolRate_, "rewards_:  ", rewards_);
 
@@ -274,11 +274,13 @@ contract DepositPool is IDepositPool, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     function withdraw(uint256 rewardPoolIndex_, uint256 amount_) external {
+        console.log("\n DepositPool::withdraw START");
         IRewardPool rewardPool_ = IRewardPool(IDistributor(distributor).rewardPool());
         rewardPool_.onlyExistedRewardPool(rewardPoolIndex_);
         rewardPool_.onlyPublicRewardPool(rewardPoolIndex_);
-
+        console.log(" calling distributor::distributeRewards ");
         IDistributor(distributor).distributeRewards(rewardPoolIndex_);
+        console.log(" return from distributor::distributeRewards ");
 
         (uint256 currentPoolRate_, uint256 rewards_) = _getCurrentPoolRate(rewardPoolIndex_);
 
@@ -286,6 +288,7 @@ contract DepositPool is IDepositPool, OwnableUpgradeable, UUPSUpgradeable {
 
         // Update `rewardPoolsProtocolDetails`
         rewardPoolsProtocolDetails[rewardPoolIndex_].distributedRewards += rewards_;
+        console.log("\n DepositPool::withdraw END");
     }
 
     function claim(uint256 rewardPoolIndex_, address receiver_) external payable {
@@ -313,6 +316,7 @@ contract DepositPool is IDepositPool, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     function lockClaim(uint256 rewardPoolIndex_, uint128 claimLockEnd_) external {
+        console.log("\n === DepositPool::lockclaim start ===");
         require(isMigrationOver == true, "DS: migration isn't over");
         IRewardPool(IDistributor(distributor).rewardPool()).onlyExistedRewardPool(rewardPoolIndex_);
 
@@ -357,6 +361,7 @@ contract DepositPool is IDepositPool, OwnableUpgradeable, UUPSUpgradeable {
         rewardPoolsProtocolDetails[rewardPoolIndex_].distributedRewards += rewards_;
 
         emit UserClaimLocked(rewardPoolIndex_, user_, claimLockStart_, claimLockEnd_);
+        console.log("\n === DepositPool::lockclaim End ===");
     }
 
     function _stake(
@@ -402,7 +407,7 @@ contract DepositPool is IDepositPool, OwnableUpgradeable, UUPSUpgradeable {
             uint256 balanceAfter_ = IERC20(depositToken).balanceOf(address(this));
 
             amount_ = balanceAfter_ - balanceBefore_;
-
+            console.log("Transfer from ", _msgSender(), " to this ", address(this));
             console.log("actual received amount:", amount_);
             console.log("calling distributor.supply");
             IDistributor(distributor).supply(rewardPoolIndex_, amount_);
@@ -458,6 +463,8 @@ contract DepositPool is IDepositPool, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     function _withdraw(address user_, uint256 rewardPoolIndex_, uint256 amount_, uint256 currentPoolRate_) private {
+        console.log("  DespositPool::_withdraw Start ");
+
         require(isMigrationOver == true, "DS: migration isn't over");
 
         RewardPoolProtocolDetails storage rewardPoolProtocolDetails = rewardPoolsProtocolDetails[rewardPoolIndex_];
@@ -501,7 +508,7 @@ contract DepositPool is IDepositPool, OwnableUpgradeable, UUPSUpgradeable {
         if (userData.virtualDeposited == 0) {
             userData.virtualDeposited = userData.deposited;
         }
-
+        console.log("Calling _applyReferrerTier");
         _applyReferrerTier(
             user_,
             rewardPoolIndex_,
@@ -511,6 +518,7 @@ contract DepositPool is IDepositPool, OwnableUpgradeable, UUPSUpgradeable {
             userData.referrer,
             userData.referrer
         );
+        console.log("Return from _applyReferrerTier");
 
         // Update pool data
         rewardPoolData.lastUpdate = uint128(block.timestamp);
@@ -528,15 +536,22 @@ contract DepositPool is IDepositPool, OwnableUpgradeable, UUPSUpgradeable {
 
         if (IRewardPool(IDistributor(distributor).rewardPool()).isRewardPoolPublic(rewardPoolIndex_)) {
             totalDepositedInPublicPools -= amount_;
-
+            console.log("Calling distributer:withdraw for this public rewrard pool");
+            console.log("withdraw amount: ", amount_);
             IDistributor(distributor).withdraw(rewardPoolIndex_, amount_);
+            console.log("return from distributer:withdraw for this public rewrard pool");
+            console.log("Transfering amount from this depositPool to the user>", user_);
             IERC20(depositToken).safeTransfer(user_, amount_);
         }
 
         emit UserWithdrawn(rewardPoolIndex_, user_, amount_);
+
+        console.log("DespositPool::_withdraw End ");
     }
 
     function _claim(uint256 rewardPoolIndex_, address user_, address receiver_) private {
+        console.log("\n === _claim start with msg.sender ", user_);
+
         require(isMigrationOver == true, "DS: migration isn't over");
         IRewardPool(IDistributor(distributor).rewardPool()).onlyExistedRewardPool(rewardPoolIndex_);
 
@@ -554,16 +569,22 @@ contract DepositPool is IDepositPool, OwnableUpgradeable, UUPSUpgradeable {
         );
         require(block.timestamp > userData.claimLockEnd, "DS: user claim is locked");
 
+        console.log(" calling distributer::distributeRewards() ");
         IDistributor(distributor).distributeRewards(rewardPoolIndex_);
+        console.log(" return from distributer::distributeRewards() ");
 
         (uint256 currentPoolRate_, uint256 rewards_) = _getCurrentPoolRate(rewardPoolIndex_);
         uint256 pendingRewards_ = _getCurrentUserReward(currentPoolRate_, userData);
         require(pendingRewards_ > 0, "DS: nothing to claim");
 
         uint256 deposited_ = userData.deposited;
-
+        console.log("calling _getUserTotalMultiplier");
         uint256 multiplier_ = _getUserTotalMultiplier(0, 0, userData.referrer);
+        console.log("returned from _getUserTotalMultiplier, multiplier:", multiplier_);
+
         uint256 virtualDeposited_ = (deposited_ * multiplier_) / PRECISION;
+
+        console.log("virtualDeposited_ = deposited * multipliere = ", virtualDeposited_);
 
         if (userData.virtualDeposited == 0) {
             userData.virtualDeposited = userData.deposited;
@@ -588,6 +609,10 @@ contract DepositPool is IDepositPool, OwnableUpgradeable, UUPSUpgradeable {
         // Update `rewardPoolsProtocolDetails`
         rewardPoolsProtocolDetails[rewardPoolIndex_].distributedRewards += rewards_;
 
+        console.log("calling distributer::sendMintMessage");
+        console.log("receiver_:", receiver_);
+        console.log("pendingRewards_:", uint256(pendingRewards_), "user_:", _msgSender());
+        console.log("Transfering rewards to receiver...");
         // Transfer rewards
         IDistributor(distributor).sendMintMessage{value: msg.value}(
             rewardPoolIndex_,
@@ -597,6 +622,7 @@ contract DepositPool is IDepositPool, OwnableUpgradeable, UUPSUpgradeable {
         );
 
         emit UserClaimed(rewardPoolIndex_, user_, receiver_, pendingRewards_);
+        console.log("\n === _claim End  with msg.sender ", user_);
     }
 
     function _claimReferrerTier(uint256 rewardPoolIndex_, address referrer_, address receiver_) private {

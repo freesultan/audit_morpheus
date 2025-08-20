@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "hardhat/console.sol";
+
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -99,9 +101,19 @@ contract L1SenderV2 is IL1SenderV2, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     function sendMintMessage(address user_, uint256 amount_, address refundTo_) external payable {
+        console.log("\n--- Start l1SenderV2::sendMintMessage() ---");
+        console.log("caller:", _msgSender());
+        console.log("user:", user_);
+        console.log("msg.value (gas payment):", msg.value);
+
         require(_msgSender() == distributor, "L1S: the `msg.sender` isn't `distributor`");
 
         LayerZeroConfig storage config = layerZeroConfig;
+
+        console.log("gateway:", config.gateway);
+        console.log("receiverChainId:", config.receiverChainId);
+        console.log("receiver address:", config.receiver);
+        console.log("zroPaymentAddress:", config.zroPaymentAddress);
 
         bytes memory receiverAndSenderAddresses_ = abi.encodePacked(config.receiver, address(this));
         bytes memory payload_ = abi.encode(user_, amount_);
@@ -117,6 +129,7 @@ contract L1SenderV2 is IL1SenderV2, OwnableUpgradeable, UUPSUpgradeable {
         );
 
         emit MintMessageSent(user_, amount_);
+        console.log(" --- end l1SenderV2::sendMintMessage() ---");
     }
 
     /**********************************************************************************************/

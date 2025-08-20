@@ -292,18 +292,27 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
 
         DepositPool storage depositPool = depositPools[rewardPoolIndex_][depositPoolAddress_];
         require(depositPool.strategy != Strategy.NO_YIELD, "DR: invalid strategy for the deposit pool");
-
+        console.log("\n === call distributeRewards()  in distributer::supply ");
         distributeRewards(rewardPoolIndex_);
+        console.log("\n === return from distributeRewards()  in distributer::supply ");
+
+        console.log("\n === call _withdrawYield() in distributer::supply ");
 
         _withdrawYield(rewardPoolIndex_, depositPoolAddress_);
 
+        console.log("\n === return from  _withdrawYield() in distributer::supply ");
+
         IERC20(depositPool.token).safeTransferFrom(depositPoolAddress_, address(this), amount_);
+        console.log("Transfer from ", depositPoolAddress_, " to this ", address(this));
+        console.log("Amount transferred: ", amount_);
         if (depositPool.strategy == Strategy.AAVE) {
             AaveIPool(aavePool).supply(depositPool.token, amount_, address(this), 0);
         }
 
         depositPool.deposited += amount_;
         depositPool.lastUnderlyingBalance += amount_;
+        console.log("total Deposited amount to this deposit pool:", depositPool.deposited);
+        console.log("total lastUnderlyingBalance  to this deposit pool:", depositPool.lastUnderlyingBalance);
     }
 
     function withdraw(uint256 rewardPoolIndex_, uint256 amount_) external returns (uint256) {
@@ -410,6 +419,11 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
             uint256 yield_ = underlyingYield_ * depositPool.tokenPrice;
 
             console.log("Pool", i, ":");
+            /*
+            0 NONE
+            1 NO_YIELD
+            2 AAVE
+            */
             console.log("  strategy:", uint256(depositPool.strategy));
             console.log("  balance:", balance_);
             console.log("  lastUnderlyingBalance:", depositPool.lastUnderlyingBalance);
@@ -501,10 +515,19 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
         uint256 amount_,
         address refundTo_
     ) external payable {
+        console.log("\n === sendMintMessage() START ===");
+
         address depositPoolAddress_ = _msgSender();
         _onlyExistedDepositPool(rewardPoolIndex_, depositPoolAddress_);
+
+        console.log("calling IL1SenderV2::sendMintMessage with params:");
+        console.log("rewardPoolIndex_:", rewardPoolIndex_);
+        console.log("user_:", user_);
+        console.log("amount_:", amount_);
+        console.log("refundTo_:", refundTo_);
         //@>q don't we need to check msg.value here?
         IL1SenderV2(l1Sender).sendMintMessage{value: msg.value}(user_, amount_, refundTo_);
+        console.log(" === sendMintMessage() END ===");
     }
 
     /**
@@ -513,18 +536,26 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
      * each token may be different.
      */
     function _withdrawYield(uint256 rewardPoolIndex_, address depositPoolAddress_) private {
+        console.log("\n === _withdrawYield() START ===");
         DepositPool storage depositPool = depositPools[rewardPoolIndex_][depositPoolAddress_];
 
         uint256 yield_ = depositPool.lastUnderlyingBalance - depositPool.deposited;
+
+        console.log("  depositPool.lastUnderlyingBalance:", depositPool.lastUnderlyingBalance);
+        console.log("  depositPool.deposited:", depositPool.deposited);
+        console.log("yield to withdraw:", yield_);
+
         if (yield_ == 0) return;
 
         if (depositPool.strategy == Strategy.AAVE) {
             AaveIPool(aavePool).withdraw(depositPool.token, yield_, l1Sender);
         } else {
+            console.log("transfer yield to l1sender: ", address(l1Sender));
             IERC20(depositPool.token).safeTransfer(l1Sender, yield_);
         }
 
         depositPool.lastUnderlyingBalance -= yield_;
+        console.log("depositPool.lastUnderlyingBalance after yield withdrawal:", depositPool.lastUnderlyingBalance);
     }
 
     /**********************************************************************************************/

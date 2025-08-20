@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "hardhat/console.sol";
+
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
@@ -70,11 +72,18 @@ contract RewardPool is IRewardPool, OwnableUpgradeable, UUPSUpgradeable {
 
     //@>i how much reward is available for the period, in tokens in this rewardpool.
     function getPeriodRewards(uint256 index_, uint128 startTime_, uint128 endTime_) external view returns (uint256) {
+        console.log(
+            "RewardPool::getPeriodRewards SRART with index: %s, startTime: %s, endTime: %s",
+            index_,
+            startTime_,
+            endTime_
+        );
         if (!isRewardPoolExist(index_)) {
             return 0;
         }
 
         RewardPool storage rewardPool = rewardPools[index_];
+        console.log("RewardPool::getPeriodRewards END");
 
         return
             LinearDistributionIntervalDecrease.getPeriodReward(
