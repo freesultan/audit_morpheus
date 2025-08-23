@@ -161,6 +161,7 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
     // Deploy L2MessageReceiver mock (if needed for L1Sender tests)
     const l2MessageReceiverFactory = await ethers.getContractFactory('L2MessageReceiver');
     const l2MessageReceiverImpl = await l2MessageReceiverFactory.deploy();
+
     const proxyFactory = await ethers.getContractFactory('ERC1967Proxy');
     const l2MessageReceiverProxy = await proxyFactory.deploy(l2MessageReceiverImpl, '0x');
     l2MessageReceiver = l2MessageReceiverFactory.attach(l2MessageReceiverProxy) as L2MessageReceiver;
@@ -171,6 +172,7 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
     // 1. Deploy ChainLinkDataConsumer
     const chainLinkFactory = await ethers.getContractFactory('ChainLinkDataConsumer');
     const chainLinkImpl = await chainLinkFactory.deploy();
+
     const proxyFactory = await ethers.getContractFactory('ERC1967Proxy');
     const chainLinkProxy = await proxyFactory.deploy(await chainLinkImpl.getAddress(), '0x');
     chainLinkDataConsumer = chainLinkFactory.attach(await chainLinkProxy.getAddress()) as ChainLinkDataConsumer;
@@ -186,11 +188,13 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
     const linearDistributionLib = await (
       await ethers.getContractFactory('LinearDistributionIntervalDecrease')
     ).deploy();
+
     const rewardPoolFactory = await ethers.getContractFactory('RewardPool', {
       libraries: {
         LinearDistributionIntervalDecrease: await linearDistributionLib.getAddress(),
       },
     });
+
     const rewardPoolImpl = await rewardPoolFactory.deploy();
     const rewardPoolProxy = await proxyFactory.deploy(await rewardPoolImpl.getAddress(), '0x');
     rewardPool = rewardPoolFactory.attach(await rewardPoolProxy.getAddress()) as RewardPool;
@@ -211,6 +215,7 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
         isPublic: false,
       },
     ];
+
     await rewardPool.RewardPool_init(pools);
 
     // 3. Deploy L1SenderV2
@@ -234,6 +239,7 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
     const distributorImpl = await distributorFactory.deploy();
     const distributorProxy = await proxyFactory.deploy(await distributorImpl.getAddress(), '0x');
     distributor = distributorFactory.attach(await distributorProxy.getAddress()) as Distributor;
+
     await distributor.Distributor_init(
       await chainLinkDataConsumer.getAddress(),
       await aavePool.getAddress(),
@@ -245,15 +251,18 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
     // 5. Deploy DepositPool
     const lib1 = await (await ethers.getContractFactory('ReferrerLib')).deploy();
     const lib2 = await (await ethers.getContractFactory('LockMultiplierMath')).deploy();
+
     const depositPoolFactory = await ethers.getContractFactory('DepositPool', {
       libraries: {
         ReferrerLib: await lib1.getAddress(),
         LockMultiplierMath: await lib2.getAddress(),
       },
     });
+
     const depositPoolImpl = await depositPoolFactory.deploy();
     const depositPoolProxy = await proxyFactory.deploy(await depositPoolImpl.getAddress(), '0x');
     depositPool = depositPoolFactory.attach(await depositPoolProxy.getAddress()) as DepositPool;
+
     await depositPool.DepositPool_init(await depositToken.getAddress(), await distributor.getAddress());
 
     // 6. Deploy L2TokenReceiverV2
@@ -261,6 +270,7 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
     const l2ReceiverImpl = await l2ReceiverFactory.deploy();
     const l2ReceiverProxy = await proxyFactory.deploy(await l2ReceiverImpl.getAddress(), '0x');
     l2TokenReceiver = l2ReceiverFactory.attach(await l2ReceiverProxy.getAddress()) as L2TokenReceiverV2;
+
     await l2TokenReceiver.L2TokenReceiver__init(
       await swapRouter.getAddress(),
       await nonfungiblePositionManager.getAddress(),
@@ -305,7 +315,6 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
     await depositToken.connect(alice).approve(await depositPool.getAddress(), ethers.MaxUint256);
     await depositToken.connect(bob).approve(await depositPool.getAddress(), ethers.MaxUint256);
     await depositToken.connect(charlie).approve(await depositPool.getAddress(), ethers.MaxUint256);
-
     await stETH.connect(alice).approve(await l1Sender.getAddress(), ethers.MaxUint256);
     await stETH.connect(bob).approve(await l1Sender.getAddress(), ethers.MaxUint256);
   }
@@ -334,203 +343,99 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
       // Setup reward pool timestamp (required before any staking)
       await distributor.setRewardPoolLastCalculatedTimestamp(publicRewardPoolId, 1);
       await distributor.setMinRewardsDistributePeriod(0);
+      console.log(
+        '>>>>>>> distributer balance:',
+        ethers.formatEther(await depositToken.balanceOf(await distributor.getAddress())),
+      );
+      console.log(
+        '>>>>>>> lsSender balance:',
+        ethers.formatEther(await depositToken.balanceOf(await l1Sender.getAddress())),
+      );
+      ///await depositToken.mint(await distributor.getAddress(), wei(70));
+      console.log(
+        '>>>>>>> distributer balance(day 0):',
+        ethers.formatEther(await depositToken.balanceOf(await distributor.getAddress())),
+      );
+      console.log(
+        '>>>>>>> lsSender balance:',
+        ethers.formatEther(await depositToken.balanceOf(await l1Sender.getAddress())),
+      );
 
       // Set time to start reward distribution
       await setNextTime(oneDay * 11);
 
-      let userData = await depositPool.usersData(alice.address, publicRewardPoolId);
-      console.log('\n--- BEFORE STAKE ---');
-      console.log('Alice deposited:', userData.deposited.toString());
-      console.log('Alice virtualDeposited:', userData.virtualDeposited.toString());
-      console.log('Alice pendingRewards:', userData.pendingRewards.toString());
-      console.log('Alice rate:', userData.rate.toString());
-      console.log('Alice lastStake:', userData.lastStake.toString());
-      console.log('Alice claimLockStart:', userData.claimLockStart.toString());
-      console.log('Alice claimLockEnd:', userData.claimLockEnd.toString());
-      console.log('Alice lastClaim:', userData.lastClaim.toString());
-      console.log('Alice referrer:', userData.referrer);
+      // let userData = await depositPool.usersData(alice.address, publicRewardPoolId);
 
-      console.log('Alice deposit token balance:', (await depositToken.balanceOf(alice.address)).toString());
-      console.log('Alice stETH balance:', (await stETH.balanceOf(alice.address)).toString());
-      console.log('Alice wstETH balance:', (await wstETH.balanceOf(alice.address)).toString());
-      console.log('Alice MOR balance:', (await mor.balanceOf(alice.address)).toString());
-      console.log('\n --- Alice Stakes ---');
       // Alice stakes tokens
       await depositPool.connect(alice).stake(publicRewardPoolId, wei(100), 0, ZERO_ADDR);
+      console.log(
+        '>>>>>>> distributer balance(day 11 after alice staked 100):',
+        ethers.formatEther(await depositToken.balanceOf(await distributor.getAddress())),
+      );
+      console.log(
+        '>>>>>>> lsSender balance:',
+        ethers.formatEther(await depositToken.balanceOf(await l1Sender.getAddress())),
+      );
 
       // Fast forward time
       await setNextTime(oneDay * 12);
-
-      userData = await depositPool.usersData(alice.address, publicRewardPoolId);
-      console.log('\n--- AFTER Alice STAKE + 1 DAY ---');
-      console.log('Alice deposited:', userData.deposited.toString());
-      console.log('Alice virtualDeposited:', userData.virtualDeposited.toString());
-      console.log('Alice pendingRewards:', userData.pendingRewards.toString());
-      console.log('Alice rate:', userData.rate.toString());
-      console.log('Alice lastStake:', userData.lastStake.toString());
-      console.log('Alice claimLockStart:', userData.claimLockStart.toString());
-      console.log('Alice claimLockEnd:', userData.claimLockEnd.toString());
-      console.log('Alice lastClaim:', userData.lastClaim.toString());
-      console.log('Alice referrer:', userData.referrer);
-
-      console.log('Alice deposit token balance:', (await depositToken.balanceOf(alice.address)).toString());
-      console.log('Alice stETH balance:', (await stETH.balanceOf(alice.address)).toString());
-      console.log('Alice wstETH balance:', (await wstETH.balanceOf(alice.address)).toString());
-      console.log('Alice MOR balance:', (await mor.balanceOf(alice.address)).toString());
-
-      console.log('\n --- Bob Stakes ---');
+      console.log(
+        '>>>>>>> distributer balance(day 12 ):',
+        ethers.formatEther(await depositToken.balanceOf(await distributor.getAddress())),
+      );
+      console.log(
+        '>>>>>>> lsSender balance:',
+        ethers.formatEther(await depositToken.balanceOf(await l1Sender.getAddress())),
+      );
 
       await depositPool.connect(bob).stake(publicRewardPoolId, wei(50), 0, ZERO_ADDR);
+      console.log(
+        '>>>>>>> distributer balance(day 12 after bob stakced 50):',
+        ethers.formatEther(await depositToken.balanceOf(await distributor.getAddress())),
+      );
+      console.log(
+        '>>>>>>> lsSender balance:',
+        ethers.formatEther(await depositToken.balanceOf(await l1Sender.getAddress())),
+      );
+
+      await setNextTime(oneDay * 13);
+      console.log(
+        '>>>>>>> distributer balance (day 13):',
+        ethers.formatEther(await depositToken.balanceOf(await distributor.getAddress())),
+      );
+      console.log(
+        '>>>>>>> lsSender balance:',
+        ethers.formatEther(await depositToken.balanceOf(await l1Sender.getAddress())),
+      );
+      await setNextTime(oneDay * 50);
+
+      const aliceRewards = await depositPool.getLatestUserReward(publicRewardPoolId, alice.address);
+      const bobRewards = await depositPool.getLatestUserReward(publicRewardPoolId, bob.address);
+      console.log('>> Alice pendingRewards:', ethers.formatEther(aliceRewards));
+      console.log('>> Bob pendingRewards  :', ethers.formatEther(bobRewards));
 
       // TODO: Insert vulnerability proof here
       // Example: Demonstrate reward calculation issue, reentrancy, etc.
 
-      userData = await depositPool.usersData(alice.address, publicRewardPoolId);
-      console.log('\n--- AFTER Bob STAKE + 1 DAY ---');
-      console.log('Alice deposited:', userData.deposited.toString());
-      console.log('Alice virtualDeposited:', userData.virtualDeposited.toString());
-      console.log('Alice pendingRewards:', userData.pendingRewards.toString());
-      console.log('Alice rate:', userData.rate.toString());
-      console.log('Alice lastStake:', userData.lastStake.toString());
-      console.log('Alice claimLockStart:', userData.claimLockStart.toString());
-      console.log('Alice claimLockEnd:', userData.claimLockEnd.toString());
-      console.log('Alice lastClaim:', userData.lastClaim.toString());
-      console.log('Alice referrer:', userData.referrer);
+      // await l1Sender.setLayerZeroConfig({
+      //   gateway: await lzEndpointL1.getAddress(),
+      //   receiver: await l2MessageReceiver.getAddress(),
+      //   receiverChainId: l2ChainId,
+      //   zroPaymentAddress: ZERO_ADDR,
+      //   adapterParams: '0x',
+      // });
 
-      let aliceRewards = await depositPool.getLatestUserReward(publicRewardPoolId, alice.address);
-      console.log('>>>> latest alice reward:', aliceRewards.toString());
+      // try {
+      //   await depositPool.connect(alice).claim(publicRewardPoolId, alice.address);
+      //   console.log("✅ Alice claimed successfully!");
 
-      let bobuserData = await depositPool.usersData(bob.address, publicRewardPoolId);
-      console.log('\n--- AFTER Bob STAKE + 1 DAY ---');
-      console.log('bob deposited:', bobuserData.deposited.toString());
-      console.log('bob virtualDeposited:', bobuserData.virtualDeposited.toString());
-      console.log('bob pendingRewards:', bobuserData.pendingRewards.toString());
-      console.log('bob rate:', bobuserData.rate.toString());
-      console.log('bob lastStake:', bobuserData.lastStake.toString());
-      console.log('bob claimLockStart:', bobuserData.claimLockStart.toString());
-      console.log('bob claimLockEnd:', bobuserData.claimLockEnd.toString());
-      console.log('bob lastClaim:', bobuserData.lastClaim.toString());
-      console.log('bob referrer:', bobuserData.referrer);
+      // } catch (error) {
+      //   console.log("⚠️ LayerZero mock error (expected), but reward calculation worked!");
 
-      await setNextTime(oneDay * 50);
-      await distributor.distributeRewards(publicRewardPoolId);
-
-      //await depositPool.connect(alice).claim(publicRewardPoolId, alice.address);
-
-      userData = await depositPool.usersData(alice.address, publicRewardPoolId);
-      console.log('\n--- AFTER Alice CLAIM + 50 DAYS ---');
-      console.log('Alice deposited:', userData.deposited.toString());
-      console.log('Alice virtualDeposited:', userData.virtualDeposited.toString());
-      console.log('Alice pendingRewards:', userData.pendingRewards.toString());
-      console.log('Alice rate:', userData.rate.toString());
-      console.log('Alice lastStake:', userData.lastStake.toString());
-      console.log('Alice claimLockStart:', userData.claimLockStart.toString());
-      console.log('Alice claimLockEnd:', userData.claimLockEnd.toString());
-      console.log('Alice lastClaim:', userData.lastClaim.toString());
-      console.log('Alice referrer:', userData.referrer);
-
-      aliceRewards = await depositPool.getLatestUserReward(publicRewardPoolId, alice.address);
-      console.log('>>>> latest alice reward:', aliceRewards.toString());
-    });
-
-    it('POC-2: Distributor - Example vulnerability test', async function () {
-      // Setup reward pool timestamp (required before any staking)
-      await distributor.setRewardPoolLastCalculatedTimestamp(publicRewardPoolId, 1);
-
-      // Alice stakes tokens (this internally calls supply on distributor)
-      await depositPool.connect(alice).stake(publicRewardPoolId, wei(100), 0, ZERO_ADDR);
-
-      // Set minimum rewards distribute period
-      await distributor.setMinRewardsDistributePeriod(0);
-
-      // Fast forward time to accumulate rewards
-      await setNextTime(oneDay * 11);
-
-      // Distribute rewards
-      await distributor.distributeRewards(publicRewardPoolId);
-
-      // TODO: Insert vulnerability proof here
-      // Example: Demonstrate yield manipulation, reward distribution issues
-
-      const poolData = await distributor.depositPools(publicRewardPoolId, await depositPool.getAddress());
-      console.log('Pool deposited:', poolData.deposited.toString());
-      console.log('Pool last underlying balance:', poolData.lastUnderlyingBalance.toString());
-    });
-
-    it('POC-3: L1SenderV2 - Example vulnerability test', async function () {
-      // Setup LayerZero config
-      await l1Sender.setLayerZeroConfig({
-        gateway: await lzEndpointL1.getAddress(),
-        receiver: await l2MessageReceiver.getAddress(),
-        receiverChainId: l2ChainId,
-        zroPaymentAddress: ZERO_ADDR,
-        adapterParams: '0x',
-      });
-
-      // Alice has stETH to bridge
-      await stETH.mint(await l1Sender.getAddress(), wei(100));
-
-      // TODO: Insert vulnerability proof here
-      // Example: Bridge message manipulation, fee extraction
-
-      await l1Sender.sendWstETH(1, 1, 1);
-
-      const balance = await wstETH.balanceOf(treasury.address);
-      console.log('Treasury wstETH balance:', balance.toString());
-    });
-
-    it('POC-4: ChainLinkDataConsumer - Example vulnerability test', async function () {
-      // Set allowed price update delay
-      await chainLinkDataConsumer.setAllowedPriceUpdateDelay(3600); // 1 hour
-
-      // Manipulate price feed
-      await ethUsdFeed.setAnswerResult(wei(4000, 18)); // Double ETH price
-
-      // TODO: Insert vulnerability proof here
-      // Example: Price manipulation, stale price exploitation
-
-      const pathId = await chainLinkDataConsumer.getPathId('ETH/USD');
-      const price = await chainLinkDataConsumer.getChainLinkDataFeedLatestAnswer(pathId);
-      console.log('ETH/USD price:', price.toString());
-    });
-
-    it('POC-5: RewardPool - Example vulnerability test', async function () {
-      // Add a new reward pool
-      await rewardPool.addRewardPool({
-        payoutStart: oneDay * 30,
-        decreaseInterval: oneDay,
-        initialReward: wei(1000),
-        rewardDecrease: wei(10),
-        isPublic: true,
-      });
-
-      // TODO: Insert vulnerability proof here
-      // Example: Reward calculation overflow, period manipulation
-
-      const rewards = await rewardPool.getPeriodRewards(2, oneDay * 30, oneDay * 40);
-      console.log('Period rewards:', rewards.toString());
-    });
-
-    it('POC-6: L2TokenReceiverV2 - Example vulnerability test', async function () {
-      // Setup swap parameters
-      await l2TokenReceiver.editParams(
-        {
-          tokenIn: await stETH.getAddress(),
-          tokenOut: await mor.getAddress(),
-          fee: 3000,
-          sqrtPriceLimitX96: 0,
-        },
-        false,
-      );
-
-      // Mint tokens to L2 receiver
-      await stETH.mint(await l2TokenReceiver.getAddress(), wei(100));
-
-      // TODO: Insert vulnerability proof here
-      // Example: Swap manipulation, liquidity extraction
-
-      const params = await l2TokenReceiver.secondSwapParams();
-      console.log('Swap fee:', params.fee.toString());
+      //   // Check that Alice's pending rewards were calculated correctly
+      //   const aliceRewards = await depositPool.getLatestUserReward(publicRewardPoolId, alice.address);
+      //   console.log("Alice calculated rewards:", ethers.formatEther(aliceRewards), "tokens");
+      // }
     });
   });
 
@@ -549,10 +454,12 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
         LockMultiplierMath: await lib2.getAddress(),
       },
     });
+
     const depositPool2Impl = await depositPool2Factory.deploy();
     const proxyFactory = await ethers.getContractFactory('ERC1967Proxy');
     const depositPool2Proxy = await proxyFactory.deploy(depositPool2Impl, '0x');
     const depositPool2 = depositPool2Factory.attach(depositPool2Proxy) as DepositPool;
+
     await depositPool2.DepositPool_init(pool2, distributor);
 
     // Add to distributor with Aave strategy
@@ -592,7 +499,7 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
     logBalances: async (token: any, addresses: string[], labels: string[]) => {
       for (let i = 0; i < addresses.length; i++) {
         const balance = await token.balanceOf(addresses[i]);
-        console.log(`${labels[i]} balance:`, ethers.formatEther(balance));
+        console.log(`${labels[i]} balance:`, ethers.formatEther(balance), 'tokens');
       }
     },
   };

@@ -360,7 +360,7 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
         //// Calculate the reward amount
         uint256 rewards_ = IRewardPool(rewardPool).getPeriodRewards(
             rewardPoolIndex_,
-            lastCalculatedTimestamp_,
+            lastCalculatedTimestamp_, //@>q where does this set?
             uint128(block.timestamp)
         );
         console.log("calculated rewards from RewardPool:", rewards_);
