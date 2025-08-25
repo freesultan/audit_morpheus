@@ -261,7 +261,7 @@ contract DepositPool is IDepositPool, OwnableUpgradeable, UUPSUpgradeable {
         rewardPool_.onlyExistedRewardPool(rewardPoolIndex_);
         rewardPool_.onlyPublicRewardPool(rewardPoolIndex_);
 
-        IDistributor(distributor).distributeRewards(rewardPoolIndex_); //@>i calculate yields for each deposit pool and updates distributed rewards
+        IDistributor(distributor).distributeRewards(rewardPoolIndex_);
         console.log("\n --- end distributeRwards \n");
         (uint256 currentPoolRate_, uint256 rewards_) = _getCurrentPoolRate(rewardPoolIndex_);
         console.log("currentPoolRate:", currentPoolRate_, "rewards_:  ", rewards_);
@@ -746,41 +746,24 @@ contract DepositPool is IDepositPool, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     function _getCurrentUserReward(uint256 currentPoolRate_, UserData memory userData_) private pure returns (uint256) {
-        console.log("\n        DepositPool::_getCurrentUserReward START");
         uint256 deposited_ = userData_.virtualDeposited == 0 ? userData_.deposited : userData_.virtualDeposited;
-        console.log("\n        userDate deposited: ", deposited_);
 
         uint256 newRewards_ = ((currentPoolRate_ - userData_.rate) * deposited_) / PRECISION;
-        console.log("\n        currentPoolRate_: ", currentPoolRate_);
-        console.log("\n        userData_.rate: ", userData_.rate);
-        console.log("\n        newRewards_: ", newRewards_);
 
         return userData_.pendingRewards + newRewards_;
     }
 
     function _getCurrentPoolRate(uint256 rewardPoolIndex_) private view returns (uint256, uint256) {
-        console.log("\n        DepositPool::_getCurrentPoolRate START");
-
         RewardPoolData storage rewardPoolData = rewardPoolsData[rewardPoolIndex_];
-        console.log(
-            "\n        rewardPoolsProtocolDetails[rewardPoolIndex_].distributedRewards: ",
-            rewardPoolsProtocolDetails[rewardPoolIndex_].distributedRewards
-        );
-        console.log(
-            "\n        getDistributedRewards: ",
-            rewardPoolsProtocolDetails[rewardPoolIndex_].distributedRewards
-        );
 
         uint256 rewards_ = IDistributor(distributor).getDistributedRewards(rewardPoolIndex_, address(this)) -
             rewardPoolsProtocolDetails[rewardPoolIndex_].distributedRewards;
-        console.log("\n        rewards: ", rewards_);
 
         if (rewardPoolData.totalVirtualDeposited == 0) {
             return (rewardPoolData.rate, rewards_);
         }
 
         uint256 rate_ = rewardPoolData.rate + (rewards_ * PRECISION) / rewardPoolData.totalVirtualDeposited;
-        console.log("\n        rate_: ", rate_);
 
         return (rate_, rewards_);
     }

