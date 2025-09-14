@@ -232,7 +232,12 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
         address aToken_ = address(0);
         if (strategy_ == Strategy.AAVE) {
             (aToken_, , ) = AaveIPoolDataProvider(aavePoolDataProvider).getReserveTokensAddresses(token_);
-
+            /* @>MISSED 
+                if owner set new aave pool, the current allowance will be invalid
+                since the allowance is done only in addDepositPool and isDepositTokenAdded[token_] prevents to do it again
+                After updating aavePool, supply, withdraw, and withdrawYield calls
+                 for existing Aave-strategy deposit pools fail due to missing approvals for the new pool
+            */
             IERC20(token_).safeApprove(aavePool, type(uint256).max);
             IERC20(aToken_).approve(aavePool, type(uint256).max);
         }
@@ -364,7 +369,14 @@ contract Distributor is IDistributor, OwnableUpgradeable, UUPSUpgradeable {
             uint128(block.timestamp)
         );
         console.log("calculated rewards from RewardPool:", rewards_);
-
+        /* @>MISSED 
+         In withdraw yield, the yield is calculated by diff between lastunderlyingBalance and deposited balance.
+        lastUnderlyingBalance is updated in distributeRewards function but
+        if rewards_ is 0, the lastUnderlyingBalance is not updated and users cannot withdraw yield in _withdrawYield
+        after rewards
+        because after maxEndTime_ the getPeriodRewards will return 0 rewards
+        so if rewards_ is 0, we should still update lastCalculatedTimestamp and lastUnderlyingBalance
+        */
         if (rewards_ == 0) return;
         //// End
 
